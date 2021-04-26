@@ -20,7 +20,7 @@ from datetime import datetime, timedelta
 from app.objects import home, stats_global, open_ticker
 
 #connection avec base de données
-engine = create_engine(Config.DATABASE_URL)
+engine = create_engine(Config.DATABASE_URI)
 Base.metadata.create_all(engine)
 Session = sessionmaker(bind=engine)
 session= Session()
