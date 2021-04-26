@@ -1,1 +1,1 @@
-web: gunicorn transac:app
+web: gunicorn transac:server
