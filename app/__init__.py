@@ -15,7 +15,7 @@ from plotly.subplots import make_subplots
 import pandas as pd
 from app.models import Titres, Positions, Contrats, Base
 import numpy as np
-import pandas_profiling
+
 from datetime import datetime, timedelta
 from app.objects import home, stats_global, open_ticker
 
