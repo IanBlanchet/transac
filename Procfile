@@ -1,0 +1,1 @@
+web: gunicorn transac:app
