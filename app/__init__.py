@@ -44,6 +44,8 @@ external_stylesheets = external_stylesheets = [dbc.themes.SPACELAB] #['https://c
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets,
                 suppress_callback_exceptions=True)
 
+server = app.server
+
 mes_position_ferme['duree'] = mes_position_ferme.date_ferm - mes_position_ferme.date_ouv
 mes_position_ferme['duree'] = mes_position_ferme['duree'].apply(lambda x : x.days)
 mes_position_ferme['duree_or'] = mes_position_ferme.echeance - mes_position_ferme.date_ouv
