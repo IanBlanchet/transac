@@ -8,6 +8,7 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import dash_bootstrap_components as dbc
 from datetime import datetime, timedelta
+import pandas as pd
 
 #la bar de navigation
 navbar = dbc.Navbar(
@@ -25,14 +26,14 @@ navbar = dbc.Navbar(
         dbc.NavItem(dbc.NavLink("Accueil", href="/")),
         dbc.DropdownMenu(
             children=[
-                dbc.DropdownMenuItem("Options", header=True),
-                dbc.DropdownMenuItem("Stats Globales", href="/global"),
+                dbc.DropdownMenuItem("Menu", header=True),
+                dbc.DropdownMenuItem("Analyse durée", href="/analyse_duree"),
                 dbc.DropdownMenuItem("Analyse par titre", href="/titre"),
                 dbc.DropdownMenuItem("Positions ouvertes", href="/open"),
             ],
             nav=True,
             in_navbar=True,
-            label="Options",
+            label="Menu",
             right=True,
             
         ),
@@ -48,7 +49,7 @@ navbar = dbc.Navbar(
 
 
 
-def home(df):
+def analyse_duree(df):
     figure = px.histogram(df, x="ratio_duree")
     df = df[df['ratio_duree'] < 2]
     stat_descrip = df.describe()
@@ -57,18 +58,12 @@ def home(df):
     'gain_can', 'id', 'prix_ouv', 'prix_ferm', 'risque', 'strike', 'duree']].round(0)
     stat_descrip[['iv_ouv', 'iv_ferm']] = stat_descrip[['iv_ouv', 'iv_ferm']].round(2)
     
-    home = html.Div([navbar,
+    analyse_duree = html.Div([navbar,
         html.H1(children='Analyse de transactions sur options'),
 
         html.Div(children='''
             Un dashboard qui permet d'analyser les statistiques
         '''),
-
-        dcc.Dropdown(
-            id='ticker',
-            options=['test'],#[{'label':value, 'value':value} for value in pd.unique(transactions.underlyingSymbol)],
-            placeholder='select un ticker'       
-        ),
 
         dcc.Graph(
             id='graphique',
@@ -82,9 +77,9 @@ def home(df):
             ),  
     ])
 
-    return home
+    return analyse_duree
 
-def stats_global(df):
+def home(df):
     today = datetime.today()
     figure = px.line(df, x=df.index, y="SMA_6", title='6 months moving average')
     mes_position_mois = df[(df['annee'] == today.year) & (df['mois'] == today.month)]
@@ -92,7 +87,7 @@ def stats_global(df):
     total_mois = mes_position_mois['gain_can'].sum()
     total_annee = mes_position_annee['gain_can'].sum()
 
-    stats_global = html.Div(
+    home = html.Div(
         [
         navbar,
         dbc.Row(dbc.Col(html.H1(children='Tendance'))),
@@ -114,7 +109,7 @@ def stats_global(df):
         ]
     )
 
-    return stats_global
+    return home
 
 def open_ticker(df):
     open_ticker = html.Div(
@@ -134,3 +129,27 @@ def open_ticker(df):
     )
     return open_ticker
 
+def analyse_titre(df):
+    
+    analyse_titre = html.Div(
+        [
+        navbar,
+        dcc.Dropdown(
+            id='ticker',
+            options=[{'label':value, 'value':value} for value in pd.unique(df.ticker)],
+            placeholder='select un ticker'       
+        ),
+
+        dbc.Row(dbc.Col(html.H1(children='Positions'))),
+        dbc.Row(
+            [
+                dbc.Col(html.Div(id='table_total', children=dash_table.DataTable
+                (columns=[{"name": i, "id": i} for i in df.columns],
+                data=df.to_dict('records'),
+                style_table={'height': '800px', 'overflowY': 'auto'})))
+            ]
+                ),
+
+        ]
+    )
+    return analyse_titre
