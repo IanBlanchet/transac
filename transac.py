@@ -88,8 +88,18 @@ def montre_home_page(pathname):
 def affiche_pos(valeur):
     pos_ticker = mes_position_ferme_raw[mes_position_ferme_raw['ticker'] == valeur]
     
-    table_ticker = dash_table.DataTable(columns=[{"name": i, "id": i} for i in pos_ticker.columns],
-                    data=pos_ticker.to_dict('records'), style_table={'height': '800px', 'overflowY': 'auto'})
+    table_ticker = dash_table.DataTable(
+                                        columns=[{"name": i, "id": i} for i in pos_ticker.columns],
+                                        data=pos_ticker.to_dict('records'),
+                                        sort_action="native",
+                                        sort_mode="multi",
+                                        column_selectable="single",
+                                        row_selectable="multi",
+                                        selected_columns=[],
+                                        page_action="native",
+                                        fixed_rows={'headers': True},
+                                        style_table={'height': '800px', 'overflowY': 'auto'},
+                                        )
     
     return table_ticker
 

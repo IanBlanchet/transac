@@ -73,6 +73,7 @@ def analyse_duree(df):
             id='table',
             columns=[{"name": i, "id": i} for i in stat_descrip.columns],
             data=stat_descrip.to_dict('records'),
+            fixed_rows={'headers': True},
             style_table={'height': '300px', 'overflowY': 'auto'}
             ),  
     ])
@@ -98,7 +99,7 @@ def home(df):
                 dbc.Col(html.Div(children=dash_table.DataTable
                 (id='table',columns=[{"name": i, "id": i} for i in df.columns],
                 data=df.to_dict('records'),
-                style_table={'height': '400px', 'overflowY': 'auto'})))
+                style_table={'height': '600px', 'overflowY': 'auto'})))
             ]
                 ),
         dbc.Row(dbc.Col(html.Ul(children=[
@@ -112,6 +113,10 @@ def home(df):
     return home
 
 def open_ticker(df):
+    df = df[['ticker', 'strike','risque', 'gain', 'echeance','date_ouv', 'style', 'currency']]
+    df['gain'] = df['gain'].round(2)
+    df['date_ouv'] = df['date_ouv'].apply(lambda x : x.date())
+    df['echeance'] = df['echeance'].apply(lambda x : x.date())
     open_ticker = html.Div(
         [
         navbar,
@@ -121,6 +126,17 @@ def open_ticker(df):
                 dbc.Col(html.Div(children=dash_table.DataTable
                 (id='table',columns=[{"name": i, "id": i} for i in df.columns],
                 data=df.to_dict('records'),
+                filter_action="native",
+                sort_action="native",
+                sort_mode="multi",
+                column_selectable="single",
+                row_selectable="multi",
+                selected_columns=[],
+                page_action="native",
+                style_header={
+                            'backgroundColor': 'rgb(230, 230, 230)',
+                            'fontWeight': 'bold'
+                            },
                 style_table={'height': '1000px', 'overflowY': 'auto'})))
             ]
                 ),
@@ -130,6 +146,11 @@ def open_ticker(df):
     return open_ticker
 
 def analyse_titre(df):
+    
+    df['date_ouv'] = df['date_ouv'].apply(lambda x : x.date())
+    df['echeance'] = df['echeance'].apply(lambda x : x.date())
+    df['date_ferm'] = df['date_ferm'].apply(lambda x : x.date())
+    df = df.drop(['mois', 'annee'], axis=1)
     
     analyse_titre = html.Div(
         [
@@ -146,6 +167,13 @@ def analyse_titre(df):
                 dbc.Col(html.Div(id='table_total', children=dash_table.DataTable
                 (columns=[{"name": i, "id": i} for i in df.columns],
                 data=df.to_dict('records'),
+                sort_action="native",
+                sort_mode="multi",
+                column_selectable="single",
+                row_selectable="multi",
+                selected_columns=[],
+                page_action="native",
+                fixed_rows={'headers': True},
                 style_table={'height': '800px', 'overflowY': 'auto'})))
             ]
                 ),
