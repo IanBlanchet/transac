@@ -17,6 +17,19 @@ from app.models import Titres, Positions, Contrats, Base
 import numpy as np
 from datetime import datetime, timedelta
 from app.objects import home, analyse_duree, open_ticker, analyse_titre
+import pandas_datareader.data as web
+
+#extrait les taux de change en vigueur de la base fred
+end = datetime.today()
+start = end - timedelta(15)
+print(end, start)
+dq = web.DataReader('DEXCAUS', 'fred', start, end)
+dq.fillna(method="ffill", inplace=True)
+dq.reset_index(inplace=True)
+dq['DATE'] = pd.to_datetime(dq['DATE']).dt.strftime('%Y-%m-%d')
+dq = dq.tail(1)
+dq.reset_index(inplace=True)
+taux_change = dq.loc[0, 'DEXCAUS']
 
 #connection avec base de données
 engine = create_engine(Config.DATABASE_URI)
@@ -65,7 +78,7 @@ analyse_duree = analyse_duree(mes_position_ferme)
 
 home = home(tendance)
 
-open_ticker = open_ticker(mes_position_ouvert)
+open_ticker = open_ticker(mes_position_ouvert, taux_change)
 
 analyse_titre = analyse_titre(mes_position_ferme_raw)
 
