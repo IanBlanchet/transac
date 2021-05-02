@@ -9,6 +9,20 @@ from plotly.subplots import make_subplots
 import dash_bootstrap_components as dbc
 from datetime import datetime, timedelta
 import pandas as pd
+import base64
+
+
+
+#utiliser données de onedrive
+def create_onedrive_directdownload (onedrive_link):
+    data_bytes64 = base64.b64encode(bytes(onedrive_link, 'utf-8'))
+    data_bytes64_String = data_bytes64.decode('utf-8').replace('/','_').replace('+','-').rstrip("=")
+    resultUrl = f"https://api.onedrive.com/v1.0/shares/u!{data_bytes64_String}/root/content"
+    return resultUrl
+direct_download_url = create_onedrive_directdownload('https://1drv.ms/x/s!Agh6McKMUEEEij5c0YeKXfJzrwFa?e=3ZoxkD')
+historique = pd.read_excel(direct_download_url)
+historique = historique[['Date', 'ticker', 'prix(close)', 'IV(close)']]
+historique.drop_duplicates(inplace=True, ignore_index=True)
 
 #la bar de navigation
 navbar = dbc.Navbar(
@@ -42,11 +56,6 @@ navbar = dbc.Navbar(
     color="primary",
     dark=True,
 )
-
-
-
-
-
 
 
 def analyse_duree(df):
@@ -150,6 +159,51 @@ def open_ticker(df, taux_change):
     )
     return open_ticker
 
+def PlotContrat(fig, contrat_df, ticker):
+    #trace l'historique du titre (volatilité et prix)
+    histo = historique[historique.ticker == ticker]
+    contrat_df.reset_index(inplace=True)
+    fig.data = []
+    fig.add_trace(go.Scatter(x=histo.Date,
+                            y=histo['prix(close)'],
+                            mode='lines',
+                            name='Prix',
+                            marker_color='blue'
+                            ), secondary_y=False)
+    fig.add_trace(go.Scatter(x=histo.Date,
+                            y=histo['IV(close)'],
+                            mode='lines',
+                            name='IV',
+                            marker_color='purple'
+                            ), secondary_y=True)
+
+
+    for j in range(len(contrat_df)):
+            
+            fig.add_trace(go.Scatter(
+                                name=str(contrat_df.loc[j,'id']),
+                                x=[contrat_df.loc[j, 'date_ouv']],
+                                y=[(contrat_df.loc[j,'strike'])],
+                                text=str(contrat_df.loc[j,'strike']),
+                                ))
+            if contrat_df.loc[j,'statut'] == 'Close':
+                fig.add_trace(go.Scatter(
+                                name=str(contrat_df.loc[j,'id'])+'close',
+                                x=[contrat_df.loc[j, 'date_ferm']],
+                                y=[(contrat_df.loc[j,'strike'])],
+                                text='Gain :'+str(int(contrat_df.loc[j,'gain'])),
+                                marker_color='green'
+                                ))
+            fig.add_trace(go.Scatter(
+                                x=[contrat_df.loc[j, 'date_ouv'],contrat_df.loc[j, 'echeance']],
+                                y=[contrat_df.loc[j,'strike'],contrat_df.loc[j,'strike']],
+                                mode='lines',
+                                marker_color='yellow',
+                                opacity=0.5
+                                ))
+    return fig
+
+
 def analyse_titre(df):
     
     df['date_ouv'] = df['date_ouv'].apply(lambda x : x.date())
@@ -181,6 +235,13 @@ def analyse_titre(df):
                 fixed_rows={'headers': True},
                 style_table={'height': '800px', 'overflowY': 'auto'})))
             ]
+                ),
+        dbc.Row(
+            [
+                dbc.Col(dcc.Graph(id='graphTicker'))
+
+        ]
+
                 ),
 
         ]

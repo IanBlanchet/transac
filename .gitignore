@@ -1,2 +1,4 @@
 # Specify filepatterns you want git to ignore.
 .env
+.json
+connect_api.py

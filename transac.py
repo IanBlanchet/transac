@@ -16,8 +16,10 @@ import pandas as pd
 from app.models import Titres, Positions, Contrats, Base
 import numpy as np
 from datetime import datetime, timedelta
-from app.objects import home, analyse_duree, open_ticker, analyse_titre
+from app.objects import home, analyse_duree, open_ticker, analyse_titre, PlotContrat, historique
 import pandas_datareader.data as web
+
+fig = make_subplots(specs=[[{"secondary_y": True}]])
 
 #extrait les taux de change en vigueur de la base fred
 end = datetime.today()
@@ -97,9 +99,10 @@ def montre_home_page(pathname):
 
 #le callback pour filter par ticker
 @app.callback(Output('table_total', 'children'),
+                Output('graphTicker', 'figure'),
                 Input('ticker', 'value'))
 def affiche_pos(valeur):
-    pos_ticker = mes_position_ferme_raw[mes_position_ferme_raw['ticker'] == valeur]
+    pos_ticker = mes_position[mes_position['ticker'] == valeur]
     
     table_ticker = dash_table.DataTable(
                                         columns=[{"name": i, "id": i} for i in pos_ticker.columns],
@@ -114,7 +117,8 @@ def affiche_pos(valeur):
                                         style_table={'height': '800px', 'overflowY': 'auto'},
                                         )
     
-    return table_ticker
+    graph_ticker = PlotContrat(fig, pos_ticker, valeur)
+    return table_ticker, graph_ticker
 
 
 
