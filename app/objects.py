@@ -20,7 +20,7 @@ def create_onedrive_directdownload (onedrive_link):
     resultUrl = f"https://api.onedrive.com/v1.0/shares/u!{data_bytes64_String}/root/content"
     return resultUrl
 direct_download_url = create_onedrive_directdownload('https://1drv.ms/x/s!Agh6McKMUEEEij5c0YeKXfJzrwFa?e=3ZoxkD')
-historique = pd.read_excel(direct_download_url)
+historique = pd.read_excel(direct_download_url, engine='openpyxl')
 historique = historique[['Date', 'ticker', 'prix(close)', 'IV(close)']]
 historique.drop_duplicates(inplace=True, ignore_index=True)
 
