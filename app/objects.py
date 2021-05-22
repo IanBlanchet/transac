@@ -123,13 +123,13 @@ def home(df):
 
 def open_ticker(df, taux_change):
     df = df[['ticker', 'strike','risque', 'gain', 'echeance','date_ouv', 'style', 'currency']]
-    df['gain'] = df['gain'].round(2)
-    df['date_ouv'] = df['date_ouv'].apply(lambda x : x.date())
-    df['echeance'] = df['echeance'].apply(lambda x : x.date())
-    df['taux_change'] = df['currency'].apply(lambda x : taux_change if (x == 'USD') else 1)
-    df['risque_tot'] = df.strike * df.taux_change
+    df.loc[:,'gain'] = df['gain'].round(2)
+    df.loc[:,'date_ouv'] = df['date_ouv'].apply(lambda x : x.date())
+    df.loc[:,'echeance'] = df['echeance'].apply(lambda x : x.date())
+    df.loc[:,'taux_change'] = df['currency'].apply(lambda x : taux_change if (x == 'USD') else 1)
+    df.loc[:,'risque_tot'] = df.strike * df.taux_change
     risque_total = (df.risque_tot.sum() *100).round(0)
-    
+    df = df[['ticker', 'strike','risque', 'gain', 'echeance','date_ouv', 'style']]
     open_ticker = html.Div(
         [
         navbar,
@@ -206,10 +206,10 @@ def PlotContrat(fig, contrat_df, ticker):
 
 def analyse_titre(df):
     
-    df['date_ouv'] = df['date_ouv'].apply(lambda x : x.date())
-    df['echeance'] = df['echeance'].apply(lambda x : x.date())
-    df['date_ferm'] = df['date_ferm'].apply(lambda x : x.date())
-    df = df.drop(['mois', 'annee'], axis=1)
+    df.loc[:,'date_ouv'] = df['date_ouv'].apply(lambda x : x.date())
+    df.loc[:,'echeance'] = df['echeance'].apply(lambda x : x.date())
+    df.loc[:,'date_ferm'] = df['date_ferm'].apply(lambda x : x.date())
+    df = df.drop(['mois', 'annee', 'currency'], axis=1)
     
     analyse_titre = html.Div(
         [
@@ -219,7 +219,7 @@ def analyse_titre(df):
             options=[{'label':value, 'value':value} for value in pd.unique(df.ticker)],
             placeholder='select un ticker'       
         ),
-
+        dbc.Row(dbc.Col(html.H2(id='total_titre' , children='Total avec ce titre :'+ str(df.gain_can.sum().round(2))))),
         dbc.Row(dbc.Col(html.H1(children='Positions'))),
         dbc.Row(
             [

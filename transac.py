@@ -24,7 +24,7 @@ fig = make_subplots(specs=[[{"secondary_y": True}]])
 #extrait les taux de change en vigueur de la base fred
 end = datetime.today()
 start = end - timedelta(15)
-print(end, start)
+
 dq = web.DataReader('DEXCAUS', 'fred', start, end)
 dq.fillna(method="ffill", inplace=True)
 dq.reset_index(inplace=True)
@@ -47,10 +47,10 @@ mes_position_ferme = mes_position[mes_position.statut == 'Close']
 mes_position_ferme_raw = mes_position_ferme
 mes_position_ferme_raw[['gain', 'gain_can']] = mes_position_ferme_raw[['gain', 'gain_can']].round(2)
 tendance = mes_position_ferme
-tendance['mois'] = tendance['date_ferm'].apply(lambda x: x.month)
-tendance['annee'] =  tendance['date_ferm'].apply(lambda x : x.year)
+tendance.loc[:,'mois'] = tendance['date_ferm'].apply(lambda x: x.month)
+tendance.loc[:,'annee'] =  tendance['date_ferm'].apply(lambda x : x.year)
 tendance = tendance.groupby(['annee', 'mois']).sum()
-tendance['SMA_6'] = tendance.loc[:,'gain_can'].rolling(window=6).mean()
+tendance.loc[:,'SMA_6'] = tendance.loc[:,'gain_can'].rolling(window=6).mean()
 tendance.reset_index(inplace=True)
 tendance = tendance[['annee', 'mois','gain_can', 'SMA_6']]
 
@@ -62,11 +62,11 @@ app = dash.Dash(__name__, external_stylesheets=external_stylesheets,
 
 server = app.server
 
-mes_position_ferme['duree'] = mes_position_ferme.date_ferm - mes_position_ferme.date_ouv
-mes_position_ferme['duree'] = mes_position_ferme['duree'].apply(lambda x : x.days)
-mes_position_ferme['duree_or'] = mes_position_ferme.echeance - mes_position_ferme.date_ouv
-mes_position_ferme['duree_or'] = mes_position_ferme['duree_or'].apply(lambda x : x.days)
-mes_position_ferme['ratio_duree'] = (mes_position_ferme['duree']/mes_position_ferme['duree_or']).round(2)
+mes_position_ferme.loc[:,'duree'] = mes_position_ferme.date_ferm - mes_position_ferme.date_ouv
+mes_position_ferme.loc[:,'duree'] = mes_position_ferme['duree'].apply(lambda x : x.days)
+mes_position_ferme.loc[:,'duree_or'] = mes_position_ferme.echeance - mes_position_ferme.date_ouv
+mes_position_ferme.loc[:,'duree_or'] = mes_position_ferme['duree_or'].apply(lambda x : x.days)
+mes_position_ferme.loc[:,'ratio_duree'] = (mes_position_ferme['duree']/mes_position_ferme['duree_or']).round(2)
 
 
 #le layout vide à meubler avec callback
@@ -100,10 +100,19 @@ def montre_home_page(pathname):
 #le callback pour filter par ticker
 @app.callback(Output('table_total', 'children'),
                 Output('graphTicker', 'figure'),
+                Output('total_titre', 'children'),
                 Input('ticker', 'value'))
 def affiche_pos(valeur):
     pos_ticker = mes_position[mes_position['ticker'] == valeur]
-    
+    pos_ticker.loc[:,'date_ouv'] = pos_ticker['date_ouv'].apply(lambda x : x.date())
+    pos_ticker.loc[:,'echeance'] = pos_ticker['echeance'].apply(lambda x : x.date())
+    pos_ticker.loc[:,'date_ferm'] = pos_ticker['date_ferm'].apply(lambda x : x.date())
+    pos_ticker.loc[:,'gain'] = pos_ticker['gain'].round(0)
+    pos_ticker.loc[:,'gain_can'] = pos_ticker['gain_can'].round(0)
+    pos_ticker.loc[:,['iv_ouv', 'iv_ferm']] = pos_ticker[['iv_ouv', 'iv_ferm']].round(2)
+
+    pos_ticker = pos_ticker.drop(['currency'], axis=1)
+
     table_ticker = dash_table.DataTable(
                                         columns=[{"name": i, "id": i} for i in pos_ticker.columns],
                                         data=pos_ticker.to_dict('records'),
@@ -118,7 +127,9 @@ def affiche_pos(valeur):
                                         )
     
     graph_ticker = PlotContrat(fig, pos_ticker, valeur)
-    return table_ticker, graph_ticker
+
+    total_titre = 'Total avec ce titre :'+ str(pos_ticker.gain_can.sum().round(2))
+    return table_ticker, graph_ticker, total_titre
 
 
 
