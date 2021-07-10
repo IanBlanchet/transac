@@ -70,9 +70,7 @@ def analyse_duree(df):
     analyse_duree = html.Div([navbar,
         html.H1(children='Analyse de transactions sur options'),
 
-        html.Div(children='''
-            Un dashboard qui permet d'analyser les statistiques
-        '''),
+        html.Div(children='Un dashboard qui permet analyser les statistiques'),
 
         dcc.Graph(
             id='graphique',
@@ -89,13 +87,19 @@ def analyse_duree(df):
 
     return analyse_duree
 
-def home(df):
+def home(df, df_account):
     today = datetime.today()
     figure = px.line(df, x=df.index, y="SMA_6", title='6 months moving average')
     mes_position_mois = df[(df['annee'] == today.year) & (df['mois'] == today.month)]
+    account_mois = df_account[(df_account['annee'] == today.year) & (df_account['mois'] == today.month)]
     mes_position_annee = df[(df['annee'] == today.year)]
+    account_annee = df_account[(df_account['annee'] == today.year)]
     total_mois = mes_position_mois['gain_can'].sum()
     total_annee = mes_position_annee['gain_can'].sum()
+    total_mois_marge = account_mois[account_mois.account == 'U2517832'].gain_can.sum()
+    total_mois_celi = account_mois[account_mois.account == 'U2874626'].gain_can.sum()
+    total_annee_marge = account_annee[account_annee.account == 'U2517832'].gain_can.sum()
+    total_annee_celi = account_annee[account_annee.account == 'U2874626'].gain_can.sum()
 
     home = html.Div(
         [
@@ -113,7 +117,11 @@ def home(df):
                 ),
         dbc.Row(dbc.Col(html.Ul(children=[
             html.Li(children="Total du mois courant : "+ str(total_mois.round(0))),
-            html.Li(children="Total année courante : "+ str(total_annee.round(0)))
+            html.Ul(children="Total du mois marge : "+ str(total_mois_marge.round(0))),
+            html.Ul(children="Total du mois CELI: "+ str(total_mois_celi.round(0))),
+            html.Li(children="Total année courante : "+ str(total_annee.round(0))),
+            html.Ul(children="Total année marge: "+ str(total_annee_marge.round(0))),
+            html.Ul(children="Total année CELI: "+ str(total_annee_celi.round(0))),
         ])
             ))
         ]
@@ -210,10 +218,16 @@ def analyse_titre(df):
     df.loc[:,'echeance'] = df['echeance'].apply(lambda x : x.date())
     df.loc[:,'date_ferm'] = df['date_ferm'].apply(lambda x : x.date())
     df = df.drop(['mois', 'annee', 'currency'], axis=1)
+    totaux = df.gain_can.sum().round(2)
+    compte_sur_marge = df[df.account == 'U2517832'].gain_can.sum().round(2)
+    celi = df[df.account == 'U2874626'].gain_can.sum().round(2)
     
     analyse_titre = html.Div(
         [
         navbar,
+        dbc.Row(dbc.Col(html.Div(children='Gain totaux = ' + str(totaux)))),
+        dbc.Row(dbc.Col(html.Div(children='compte sur marge = ' + str(compte_sur_marge)))),
+        dbc.Row(dbc.Col(html.Div(children='CELI = ' + str(celi)))),
         dcc.Dropdown(
             id='ticker',
             options=[{'label':value, 'value':value} for value in pd.unique(df.ticker)],

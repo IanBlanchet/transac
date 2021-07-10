@@ -16,7 +16,7 @@ import pandas as pd
 from app.models import Titres, Positions, Contrats, Base
 import numpy as np
 from datetime import datetime, timedelta
-from app.objects import home, analyse_duree, open_ticker, analyse_titre, PlotContrat, historique
+from app.objects import home, open_ticker, analyse_duree, analyse_titre, PlotContrat, historique
 import pandas_datareader.data as web
 
 fig = make_subplots(specs=[[{"secondary_y": True}]])
@@ -42,6 +42,7 @@ mes_position = pd.read_sql('positions', engine)
 objet_position = session.query(Positions).filter_by(statut='close').all()
 session.close()
 
+
 mes_position_ouvert = mes_position[mes_position.statut == 'Open']
 mes_position_ferme = mes_position[mes_position.statut == 'Close']
 mes_position_ferme_raw = mes_position_ferme
@@ -49,6 +50,9 @@ mes_position_ferme_raw[['gain', 'gain_can']] = mes_position_ferme_raw[['gain', '
 tendance = mes_position_ferme
 tendance.loc[:,'mois'] = tendance['date_ferm'].apply(lambda x: x.month)
 tendance.loc[:,'annee'] =  tendance['date_ferm'].apply(lambda x : x.year)
+tendance_account = tendance.groupby(['annee', 'mois','account']).sum()
+tendance_account.reset_index(inplace=True)
+tendance_account = tendance_account[['annee', 'mois','gain_can', 'account']]
 tendance = tendance.groupby(['annee', 'mois']).sum()
 tendance.loc[:,'SMA_6'] = tendance.loc[:,'gain_can'].rolling(window=6).mean()
 tendance.reset_index(inplace=True)
@@ -78,7 +82,7 @@ app.layout = html.Div([\
 
 analyse_duree = analyse_duree(mes_position_ferme)
 
-home = home(tendance)
+home = home(tendance, tendance_account)
 
 open_ticker = open_ticker(mes_position_ouvert, taux_change)
 
