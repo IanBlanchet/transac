@@ -133,13 +133,13 @@ def home(df, df_account):
 
     return home
 
-def open_ticker(df, taux_change):
-    df = df[['ticker', 'strike','risque', 'gain', 'echeance','date_ouv', 'style', 'currency']]
-    df.loc[:,'gain'] = df['gain'].round(2)
-    df.loc[:,'date_ouv'] = df['date_ouv'].apply(lambda x : x.date())
-    df.loc[:,'echeance'] = df['echeance'].apply(lambda x : x.date())
-    df.loc[:,'taux_change'] = df['currency'].apply(lambda x : taux_change if (x == 'USD') else 1)
-    df.loc[:,'risque_tot'] = df.strike * df.taux_change
+def open_ticker(df):
+    df = df[['ticker', 'strike','risque', 'gain', 'echeance','date_ouv', 'style', 'currency', 'gain_can']]
+    df['gain'] = df['gain'].round(2)
+    df['date_ouv'] = df['date_ouv'].apply(lambda x : x.date())
+    df['echeance'] = df['echeance'].apply(lambda x : x.date())
+    df['taux_change'] = df.gain_can/df.gain
+    df['risque_tot'] = df.strike * df.taux_change
     risque_total = (df.risque_tot.sum() *100).round(0)
     df = df[['ticker', 'strike','risque', 'gain', 'echeance','date_ouv', 'style']]
     open_ticker = html.Div(
@@ -218,9 +218,9 @@ def PlotContrat(fig, contrat_df, ticker):
 
 def analyse_titre(df):
     
-    df.loc[:,'date_ouv'] = df['date_ouv'].apply(lambda x : x.date())
-    df.loc[:,'echeance'] = df['echeance'].apply(lambda x : x.date())
-    df.loc[:,'date_ferm'] = df['date_ferm'].apply(lambda x : x.date())
+    df['date_ouv'] = df['date_ouv'].apply(lambda x : x.date())
+    df['echeance'] = df['echeance'].apply(lambda x : x.date())
+    df['date_ferm'] = df['date_ferm'].apply(lambda x : x.date())
     df = df.drop(['mois', 'annee', 'currency'], axis=1)
     totaux = df.gain_can.sum().round(2)
     compte_sur_marge = df[df.account == 'U2517832'].gain_can.sum().round(2)
