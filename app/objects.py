@@ -96,10 +96,12 @@ def home(df, df_account):
     account_annee = df_account[(df_account['annee'] == today.year)]
     total_mois = mes_position_mois['gain_can'].sum()
     total_annee = mes_position_annee['gain_can'].sum()
-    total_mois_marge = account_mois[account_mois.account == 'U2517832'].gain_can.sum()
-    total_mois_celi = account_mois[account_mois.account == 'U2874626'].gain_can.sum()
-    total_annee_marge = account_annee[account_annee.account == 'U2517832'].gain_can.sum()
-    total_annee_celi = account_annee[account_annee.account == 'U2874626'].gain_can.sum()
+    total_mois_marge_ian = account_mois[account_mois.account == 'U2517832'].gain_can.sum()
+    total_mois_celi_ian = account_mois[account_mois.account == 'U2874626'].gain_can.sum()
+    total_mois_marge_bibi = account_mois[account_mois.account == 'U6214437'].gain_can.sum()
+    total_mois_celi_bibi = account_mois[account_mois.account == 'U4767346'].gain_can.sum()
+    total_annee_marge = account_annee[(account_annee.account == 'U2517832') | (account_annee.account == 'U6214437')].gain_can.sum()
+    total_annee_celi = account_annee[(account_annee.account == 'U2874626')| (account_annee.account == 'U4767346')].gain_can.sum()
 
     home = html.Div(
         [
@@ -117,8 +119,10 @@ def home(df, df_account):
                 ),
         dbc.Row(dbc.Col(html.Ul(children=[
             html.Li(children="Total du mois courant : "+ str(total_mois.round(0))),
-            html.Ul(children="Total du mois marge : "+ str(total_mois_marge.round(0))),
-            html.Ul(children="Total du mois CELI: "+ str(total_mois_celi.round(0))),
+            html.Ul(children="Total du mois marge Ian: "+ str(total_mois_marge_ian.round(0))),
+            html.Ul(children="Total du mois CELI Ian: "+ str(total_mois_celi_ian.round(0))),
+            html.Ul(children="Total du mois marge Bibi: "+ str(total_mois_marge_bibi.round(0))),
+            html.Ul(children="Total du mois CELI: Bibi"+ str(total_mois_celi_bibi.round(0))),
             html.Li(children="Total année courante : "+ str(total_annee.round(0))),
             html.Ul(children="Total année marge: "+ str(total_annee_marge.round(0))),
             html.Ul(children="Total année CELI: "+ str(total_annee_celi.round(0))),
