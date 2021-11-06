@@ -46,7 +46,7 @@ tendance = tendance.groupby(['annee', 'mois']).sum()
 tendance['SMA_6'] = tendance.loc[:,'gain_can'].rolling(window=6).mean()
 tendance.reset_index(inplace=True)
 tendance = tendance[['annee', 'mois','gain_can', 'SMA_6']]
-mes_position_ouvert.to_excel('mes_position.xlsx')
+
 
 #l'application DASH
 external_stylesheets = external_stylesheets = [dbc.themes.SPACELAB] #['https://codepen.io/chriddyp/pen/bWLwgP.css']
