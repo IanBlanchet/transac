@@ -142,6 +142,7 @@ def open_ticker(df):
     df['risque_tot'] = df.strike * df.taux_change
     risque_total = (df.risque_tot.sum() *100).round(0)
     df = df[['ticker', 'strike','risque', 'gain', 'echeance','date_ouv', 'style']]
+    df.to_excel('positions_ouvertes.xlsx')
     open_ticker = html.Div(
         [
         navbar,
