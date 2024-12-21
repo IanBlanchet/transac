@@ -13,20 +13,23 @@ import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import pandas as pd
-from app.models import Titres, Positions, Contrats, Base
+from app.models_bd import Titres, Positions, Contrats, Base
 import numpy as np
 from datetime import datetime, timedelta
-from app.objects import home, open_ticker, analyse_duree, analyse_titre, PlotContrat
-import pandas_datareader.data as web
+from app.objects_plotly import home, open_ticker, analyse_duree, analyse_titre, PlotContrat
+#import pandas_datareader.data as web
 
 fig = make_subplots(specs=[[{"secondary_y": True}]])
 
 
 #connection avec base de données
 engine = create_engine(Config.DATABASE_URI)
-Base.metadata.create_all(engine)
+
+#Base.metadata.create_all(engine)
 Session = sessionmaker(bind=engine)
 session= Session()
+
+#mes_position = pd.read_sql('SELECT * FROM positions', con=engine)
 mes_position = pd.read_sql('positions', engine)
 objet_position = session.query(Positions).filter_by(statut='close').all()
 session.close()
@@ -39,6 +42,10 @@ mes_position_ferme_raw[['gain', 'gain_can']] = mes_position_ferme_raw[['gain', '
 tendance = mes_position_ferme
 tendance['mois'] = tendance['date_ferm'].apply(lambda x: x.month)
 tendance['annee'] =  tendance['date_ferm'].apply(lambda x : x.year)
+
+tendance.to_excel('test.xlsx', engine='xlsxwriter'), 
+
+tendance = tendance[['id', 'ticker', 'gain', 'risque', 'iv_ouv', 'prix_ouv', 'iv_ferm', 'prix_ferm', 'style', 'strike', 'statut', 'currency', 'gain_can', 'account', 'mois', 'annee']]
 tendance_account = tendance.groupby(['annee', 'mois','account']).sum()
 tendance_account.reset_index(inplace=True)
 tendance_account = tendance_account[['annee', 'mois','gain_can', 'account']]
