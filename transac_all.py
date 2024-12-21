@@ -43,8 +43,6 @@ tendance = mes_position_ferme
 tendance['mois'] = tendance['date_ferm'].apply(lambda x: x.month)
 tendance['annee'] =  tendance['date_ferm'].apply(lambda x : x.year)
 
-tendance.to_excel('test.xlsx', engine='xlsxwriter'), 
-
 tendance = tendance[['id', 'ticker', 'gain', 'risque', 'iv_ouv', 'prix_ouv', 'iv_ferm', 'prix_ferm', 'style', 'strike', 'statut', 'currency', 'gain_can', 'account', 'mois', 'annee']]
 tendance_account = tendance.groupby(['annee', 'mois','account']).sum()
 tendance_account.reset_index(inplace=True)
